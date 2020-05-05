@@ -6,7 +6,7 @@ Make sure you install the Pygame package first with the command:
 
 python -m pip install --user pygame
 
-To run game, execute the following from a command line:
+To run game, execute the following from a command line in the project directory:
 
 python alien_invasion.py
 
