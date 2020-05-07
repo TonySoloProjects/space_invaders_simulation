@@ -1,0 +1,8 @@
+Purpose: Collection of notes and items associated with the code refactoring task
+Created: 5/7/20 at 4:20pm
+
+
+TODO 1. push up 'refactoring branch and start organizing code via pycharm'
+
+
+Notes:
