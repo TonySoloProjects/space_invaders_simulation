@@ -55,11 +55,13 @@ class AlienInvasion:
 			# check for keyboard and mouse events
 			self._check_events()
 
-			# if game is actively being played, update the sprites
+			# If game is actively being played, update the sprites
+			# todo - if game is not active, maybe it should have the instructions, game over, play again button?
 			if self.stats.game_active:
 				self.ship.update()
 				self._update_bullets()
 				self._update_aliens()
+
 
 			# update the main screen based on sprite activity
 			self._update_screen()
@@ -80,9 +82,13 @@ class AlienInvasion:
 
 	def _check_keydown_events(self, event):
 		"""Responds to the keypresses."""
+
+		# pressing q stops the game at any time
 		if event.key == pygame.K_q:
 			sys.exit()  # user ends game by typing q
 
+		# If game is active, keyboard moves ship and fires bullet
+		# If game is not active, pressing spacebar starts the game
 		if self.stats.game_active:
 			if event.key == pygame.K_SPACE:
 				self._fire_bullet()
@@ -90,6 +96,11 @@ class AlienInvasion:
 				self.ship.moving_right = True
 			elif event.key == pygame.K_LEFT:
 				self.ship.moving_left = True
+		else:
+			if event.key == pygame.K_SPACE:
+				# todo, have space begin a new game if it is not active?
+				pass
+
 
 	def _check_keyup_events(self, event):
 		"""Responds to the key releases."""
@@ -111,7 +122,7 @@ class AlienInvasion:
 
 		self.bullets.update()  # update locations
 
-		# Get rid of bullets that have disappeared.
+		# Get rid of bullets that have moved past the top of the screen.
 		for bullet in self.bullets.copy():
 			if bullet.rect.bottom <= 0:
 				self.bullets.remove(bullet)
@@ -121,7 +132,8 @@ class AlienInvasion:
 		self._check_bullet_alien_collisions()
 
 	def _check_bullet_alien_collisions(self):
-		"""Respond to bullet-alien collisions."""
+		"""Respond to bullet-alien collisions.
+		   Remove bullets and aliens that are hit and update the score(s)."""
 
 		# Check for any bullets that have hit aliens.
 		# If so, get rid of the bullet and the alien
@@ -136,7 +148,7 @@ class AlienInvasion:
 			self.sb.prep_score()
 			self.sb.check_high_score()
 
-		# todo - move this into ready player 1 approach
+		# todo - move this into ready player 1 approach if all the aliens are gone (recenter ship too)
 		# Repopulate fleet if you have no aliens left
 		if not self.aliens:
 			# Clear existing bullets and create a new fleet
@@ -150,11 +162,11 @@ class AlienInvasion:
 	def _update_aliens(self):
 		"""Update alien positions"""
 
-		self.aliens.update()  # march horizontally
+		self.aliens.update()  # move horizontally
 
-		if self._check_fleet_edges(): 		     # check to see if you need to march down and change directions
-			self.settings.fleet_direction *= -1  # change direction if you hit an edge
-			for alien in self.aliens:
+		if self._check_fleet_edges(): 		     # check to see if you hit an edge
+			self.settings.fleet_direction *= -1  # change direction of horizontal movement
+			for alien in self.aliens:            # move the alien fleet down
 				alien.march_down()
 
 		# Look for ship/alien collisions
@@ -167,11 +179,12 @@ class AlienInvasion:
 	def _ship_hit(self):
 		"""Respond to the ship being hit"""
 		# todo, break this up so the ending of the game is a new function call
+		# look for all calls to this and see if they should be modified
 
 		if self.stats.ships_left > 0:
-			# Update screen so you can see the hit
+			# Update screen so you can see which alien hit the ship
+			# todo, consider changing the ship image to an explosion
 			self._update_screen()
-			# Pause.
 			sleep(0.5)
 
 			# Decrement ships_left and update the scoreboard.
@@ -189,6 +202,7 @@ class AlienInvasion:
 		else:
 			self.stats.game_active = False
 			# Show the mouse cursor.
+			# todo - consider different end of game approach
 			pygame.mouse.set_visible(True)
 
 	def _check_fleet_edges(self):
@@ -208,12 +222,18 @@ class AlienInvasion:
 		for alien in self.aliens:
 			if alien.rect.bottom >= screen_rect.bottom:
 				#  print(f"The aliens got to the bottom!")
+				# todo, consider different approach here for aliens getting to the bottom (which is not really a ship hit)
 				self._ship_hit()
 				break
 
 	def _update_screen(self):
-		"""Redraw the screen refreshing all content"""
+		"""Redraw the screen refreshing all content.
+		   Start by drawing background color to screen which wipes the slate clean.
+		   Then populate all the sprites and scoring information.
+		   Note that the rendering is done to the screen surface that is only made
+		   visible to the user when the .flip routine is called to make movement smoother."""
 
+		# Fill surface with background color to reset screen then draw all sprites
 		self.screen.fill(self.settings.bg_color)
 		self.ship.blitme()
 		for bullet in self.bullets.sprites():
@@ -224,6 +244,7 @@ class AlienInvasion:
 		self.sb.show_score()
 
 		# Draw the play button if the game is inactive.
+		# todo - mayby this should not be checked here and can be called somewhere else?
 		if not self.stats.game_active:
 			self.play_button.draw_button()
 
