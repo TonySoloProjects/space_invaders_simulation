@@ -16,7 +16,10 @@ class Ship(Sprite):
         self.settings = ai_game.settings
 
         # Load the ship image and get its rect.
-        self.image = pygame.image.load('images/ship.bmp')
+        self.exploded = False  # Determine if the ship should be normal or exploded
+        self.ship_alive = pygame.image.load('images/ship.bmp')
+        self.ship_dead = pygame.image.load('images/ship-exploded.bmp')
+        self.image = self.ship_alive
         self.rect = self.image.get_rect()
 
         # Start each new ship at the bottom center of the screen.
@@ -31,8 +34,15 @@ class Ship(Sprite):
 
     def blitme(self):
         """Draw the ship at its current location."""
+        if self.exploded:
+            self.screen.blit(self.ship_dead, self.rect)
+        else:
+            self.screen.blit(self.ship_alive, self.rect)
 
-        self.screen.blit(self.image, self.rect)
+    def explode_ship(self):
+        """Draw the exploded ship at its current location."""
+        self.exploded = True
+        self.blitme()
 
     def update(self):
         """Update the position based on the movement flag."""

@@ -12,7 +12,9 @@ from ship import Ship
 from bullet import Bullet
 from alien import Alien
 from button import Button
+from button import MultiLineMessage
 from scoreboard import Scoreboard
+from color_dictionary import ColorDictionary as cc
 
 
 class AlienInvasion:
@@ -44,8 +46,16 @@ class AlienInvasion:
 		self.aliens = pygame.sprite.Group()
 		self._create_fleet()
 
-		# Show the play button to allow the user to start the game
-		self.play_button = Button(self, "Play")
+		# Create intro text
+		intro_text = [
+			"Alien Invaders - Enter if you dare!",
+			"Spacebar to start.",
+			"Press 'q' to quit."]
+		self.intro_button = MultiLineMessage(self, intro_text, 600, 175)
+
+		level_text = [
+			"Level 1",
+			"Aliens worth xx Points"]
 
 	def run_game(self):
 		"""Start the main loop for the game."""
@@ -56,12 +66,10 @@ class AlienInvasion:
 			self._check_events()
 
 			# If game is actively being played, update the sprites
-			# todo - if game is not active, maybe it should have the instructions, game over, play again button?
 			if self.stats.game_active:
 				self.ship.update()
 				self._update_bullets()
 				self._update_aliens()
-
 
 			# update the main screen based on sprite activity
 			self._update_screen()
@@ -78,7 +86,7 @@ class AlienInvasion:
 				self._check_keyup_events(event)
 			elif event.type == pygame.MOUSEBUTTONDOWN:
 				mouse_pos = pygame.mouse.get_pos()
-				self._check_play_button(mouse_pos)
+				self._check_intro_button(mouse_pos)
 
 	def _check_keydown_events(self, event):
 		"""Responds to the keypresses."""
@@ -98,9 +106,49 @@ class AlienInvasion:
 				self.ship.moving_left = True
 		else:
 			if event.key == pygame.K_SPACE:
-				# todo, have space begin a new game if it is not active?
-				pass
+				pygame.mouse.set_visible(False)  # Hide the mouse cursor.
+				self._reset_stats_for_display()
+				self._start_level()
 
+	def _start_level(self, advance_level=False):
+		"""Reset sprites, and statistics and prepare to play level"""
+
+		if advance_level:
+			# Increase Level
+			self.stats.level += 1
+			self.settings.increase_speed()
+			self.sb.prep_level()
+
+		self._reset_sprites()
+		self._ready_player_one()
+
+	def _ready_player_one(self):
+		"""Inform game starting/resuming and display level and alien point values"""
+
+		level_text = [	f"On Level {self.stats.level}.",
+						f"Aliens worth {self.settings.alien_points} points.",
+						"Ready Player One!"	]
+		self._display_text(level_text, 425, 175, 2)
+
+	def _game_over(self):
+		"""Sad Tuba, Inform the player that the game is over"""
+
+		level_text = [f"Game Over!"]
+		self._display_text(level_text, 235, 75, 1.5, False)
+
+	def _display_text(self, text, width, height, sleep_time, update_game_elements=True):
+		"""Display message box to inform player"""
+
+		if update_game_elements:
+			# Show the sprites for the new level
+			self._update_gaming_elements()
+			pygame.display.flip()
+
+		# Render text to messagebox and display for brief time
+		level_message = MultiLineMessage(self, text, width, height)
+		level_message.draw_button()
+		pygame.display.flip()
+		sleep(sleep_time)
 
 	def _check_keyup_events(self, event):
 		"""Responds to the key releases."""
@@ -148,16 +196,9 @@ class AlienInvasion:
 			self.sb.prep_score()
 			self.sb.check_high_score()
 
-		# todo - move this into ready player 1 approach if all the aliens are gone (recenter ship too)
-		# Repopulate fleet if you have no aliens left
+		# Repopulate fleet and advance the level if you have no aliens left
 		if not self.aliens:
-			# Clear existing bullets and create a new fleet
-			self.bullets.empty()
-			self._create_fleet()
-			self.settings.increase_speed()
-			# Increase Level
-			self.stats.level += 1
-			self.sb.prep_level()
+			self._start_level(advance_level=True)
 
 	def _update_aliens(self):
 		"""Update alien positions"""
@@ -171,39 +212,43 @@ class AlienInvasion:
 
 		# Look for ship/alien collisions
 		if pygame.sprite.spritecollideany(self.ship, self.aliens):
-			self._ship_hit()
+			self._ship_lost()
+			return
 
 		# Look for aliens hitting the bottom of the screen
 		self._check_aliens_bottom()
 
-	def _ship_hit(self):
-		"""Respond to the ship being hit"""
-		# todo, break this up so the ending of the game is a new function call
-		# look for all calls to this and see if they should be modified
+	def _ship_lost(self):
+		"""Respond to the ship being lost by it being hit or the aliens get to the bottom"""
 
 		if self.stats.ships_left > 0:
-			# Update screen so you can see which alien hit the ship
-			# todo, consider changing the ship image to an explosion
-			self._update_screen()
-			sleep(0.5)
+			self._explode_and_pause(1.0)
 
 			# Decrement ships_left and update the scoreboard.
 			self.stats.ships_left -= 1
 			self.sb.prep_ships()
 
-			# todo move this to cleanup code with less repetition
-			# Get rid of any remaining aliens and bullets
-			self.aliens.empty()
-			self.bullets.empty()
-
-			# Create fleet and center the ship
-			self._create_fleet()
-			self.ship.center_ship()
+			# Restart the same level with a new fleet
+			self._start_level()
 		else:
+			self._explode_and_pause(0.75)
+			self._game_over()
 			self.stats.game_active = False
+			# remove all the events from the last game
+			# if you don't, a lingering spacebar hit may start a new game
+			pygame.event.clear()
+
 			# Show the mouse cursor.
-			# todo - consider different end of game approach
 			pygame.mouse.set_visible(True)
+
+	def _explode_and_pause(self, pause_in_seconds):
+		"""Explode the ship and pause to let the gravity of the moment sink in :) """
+		# Update screen so you can see last game board
+		# put an exploded ship on the old ship
+		self._update_screen()
+		self.ship.explode_ship()
+		pygame.display.flip()
+		sleep(pause_in_seconds)
 
 	def _check_fleet_edges(self):
 		"""Return true if an alien touches an left/right edge"""
@@ -222,34 +267,38 @@ class AlienInvasion:
 		for alien in self.aliens:
 			if alien.rect.bottom >= screen_rect.bottom:
 				#  print(f"The aliens got to the bottom!")
-				# todo, consider different approach here for aliens getting to the bottom (which is not really a ship hit)
-				self._ship_hit()
+				self._ship_lost()
 				break
 
 	def _update_screen(self):
 		"""Redraw the screen refreshing all content.
 		   Start by drawing background color to screen which wipes the slate clean.
-		   Then populate all the sprites and scoring information.
+		   Then populate all the gaming elements (sprites, scores, ect).
+		   Lastly, display message box to allow the player to play/restart
 		   Note that the rendering is done to the screen surface that is only made
 		   visible to the user when the .flip routine is called to make movement smoother."""
 
-		# Fill surface with background color to reset screen then draw all sprites
+		self._update_gaming_elements()
+
+		# If the game is inactive, draw the intro message box.
+		if not self.stats.game_active:
+				self.intro_button.draw_button()
+				# in case the ship is exploded, put it on the top of the alien
+				self.ship.blitme()
+
+		# Make the most recently drawn screen visible
+		pygame.display.flip()
+
+	def _update_gaming_elements(self):
+		"""Fill surface with background color to reset screen
+		   then draw all sprites, scores, levels, and remaining ships."""
 		self.screen.fill(self.settings.bg_color)
 		self.ship.blitme()
 		for bullet in self.bullets.sprites():
 			bullet.draw_bullet()
 		self.aliens.draw(self.screen)
-
-		# Draw the score information
+		# Draw the score & ships remaining
 		self.sb.show_score()
-
-		# Draw the play button if the game is inactive.
-		# todo - mayby this should not be checked here and can be called somewhere else?
-		if not self.stats.game_active:
-			self.play_button.draw_button()
-
-		# Make the most recently drawn screen visible
-		pygame.display.flip()
 
 	def _create_fleet(self):
 		"""Create the fleet of aliens."""
@@ -290,32 +339,33 @@ class AlienInvasion:
 
 		self.aliens.add(alien)
 
-	def _check_play_button(self, mouse_pos):
-		"""Start a new game when the player clicks Play."""
+	def _check_intro_button(self, mouse_pos):
+		"""Start a new game when the player clicks the intro text."""
 
-		# todo clean this code up and include a way to start game by pressing space bar
-		# todo have a ready player 1 prompt with alien point value come up
-		# todo have the ship recenter and have a ready player 1 after each man dies
-
-		button_clicked = self.play_button.rect.collidepoint(mouse_pos)
+		button_clicked = self.intro_button.rect.collidepoint(mouse_pos)
 		if button_clicked and not self.stats.game_active:
-			# Reset the game statistics.
-			self.settings.initialize_dynamic_settings()
-			self.stats.reset_stats()
-			self.stats.game_active = True
-			self.sb.prep_score()
-			self.sb.prep_level()
-			self.sb.prep_ships()
+			self._reset_stats_for_display()
+			self._start_level()
+			pygame.mouse.set_visible(False)  # Hide the mouse cursor.
 
-			# get rid of any remaining aliens and bullets.
-			self.aliens.empty()
-			self.bullets.empty()
+	def _reset_sprites(self):
+		"""Clear old sprites, create a new fleet, and center ship."""
 
-			self._create_fleet()
-			self.ship.center_ship()
+		self.aliens.empty()
+		self.bullets.empty()
+		self._create_fleet()
+		self.ship.center_ship()
+		self.ship.exploded = False
 
-			# Hide the mouse cursor.
-			pygame.mouse.set_visible(False)
+	def _reset_stats_for_display(self):
+		"""Prepare the statistics, text, and ship remaining information for first time of play."""
+
+		self.stats.game_active = True
+		self.settings.initialize_dynamic_settings()
+		self.stats.reset_stats()
+		self.sb.prep_score()
+		self.sb.prep_level()
+		self.sb.prep_ships()
 
 
 if __name__ == '__main__':

@@ -7,6 +7,8 @@ class GameStats:
         # Shortcut variables to settings
         self.settings = ai_game.settings
 
+        self.games_completed = 0  # number of games played
+
         # High score starts at zero and is not modified by reset_stats function.
         self.high_score = 0
 
