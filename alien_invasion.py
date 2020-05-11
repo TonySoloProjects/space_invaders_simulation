@@ -46,6 +46,15 @@ class AlienInvasion:
 		self.aliens = pygame.sprite.Group()
 		self._create_fleet()
 
+		# Store sound effects
+		self.bullet_sound = pygame.mixer.Sound('sounds/shoot.wav')
+		self.bullet_sound.set_volume(0.1)
+		self.invader_sound = pygame.mixer.Sound('sounds/invaderkilled.wav')
+		self.invader_sound.set_volume(0.1)
+		self.ship_explode_sound = pygame.mixer.Sound('sounds/explosion2.wav')
+		self.bullet_sound.set_volume(0.2)
+
+
 		# Create intro text
 		intro_text = [
 			"Alien Invaders - Enter if you dare!",
@@ -164,6 +173,7 @@ class AlienInvasion:
 		if len(self.bullets) < self.settings.bullets_allowed:
 			new_bullet = Bullet(self)
 			self.bullets.add(new_bullet)
+			self.bullet_sound.play()
 
 	def _update_bullets(self):
 		"""Update bullet positions, get rid of old bullets, and check for aliens shot down"""
@@ -191,6 +201,7 @@ class AlienInvasion:
 		if collisions:
 			# If you have very wide bullets, you can hit multiple aliens at a time
 			# len(aliens) is the number of aliens hit with a single bullet
+			self.invader_sound.play()
 			for aliens in collisions.values():
 				self.stats.score += self.settings.alien_points * len(aliens)
 			self.sb.prep_score()
@@ -245,6 +256,7 @@ class AlienInvasion:
 		"""Explode the ship and pause to let the gravity of the moment sink in :) """
 		# Update screen so you can see last game board
 		# put an exploded ship on the old ship
+		self.ship_explode_sound.play()
 		self._update_screen()
 		self.ship.explode_ship()
 		pygame.display.flip()
