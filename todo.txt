@@ -1,9 +1,11 @@
 Purpose: Collection of notes and items associated with the code refactoring task
 Created: 5/7/20 at 4:20pm
+Updated: 5/11/20 at 2:00pm
 
 
-TODO 1. push up 'refactoring branch and start organizing code via pycharm'
-TODO 2. consider adding sound effects for bullets, marching, colisions, etc
+Completed 1. push up 'refactoring branch and start organizing code via pycharm'
 
+Completed 2. added sound effects for bullets, marching, colisions, etc
 
 Notes:
+1) Ready to merge refactor branch back into main
