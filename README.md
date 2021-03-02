@@ -1,11 +1,16 @@
 ## Project Name & Summary
-__*Alien Invaders!*__  A Space Invaders-type game created with Python's pygame module.
+__*Alien Invaders!*__  
+
+A Space Invaders-type game created with Python's pygame module.
 
 ## Project Description
 
-A Space Invaders-type was developed and improved upon based on coding examples found in the self study book *Python Crash Course* by Eric Matthes.  
+A Space Invaders-type game was developed using left and right arrows to navigate
+a space ship that can fire lasers by using the space-bar.
 
-This version of the game includes sound effects similar to the original Space Invaders and additional graphic elements.
+The attacking aliens increase in speed and point value with each level.
+
+The current version of the game includes sound effects similar to the original Space Invaders and additional graphic elements.
 
 ### Prerequisites
 
@@ -39,4 +44,5 @@ Project Link: [https://github.com/github_username/repo_name](https://github.com/
 
 ## Resources & Acknowledgements
 
-* [Python Crash Course by Eric Matthes](https://nostarch.com/pythoncrashcourse2e)
+The game presented here is based on coding examples found in the 
+self-study book [*Python Crash Course*](https://nostarch.com/pythoncrashcourse2e) by Eric Matthes.  
