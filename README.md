@@ -40,7 +40,7 @@ Distributed under the *** License.  See `*** License Info ***` for more informat
 ## Contact
 
 Tony Held - tony.held@gmail.com  
-Project Link: [https://github.com/github_username/repo_name](https://github.com/github_username/repo_name)
+Project Link: [Space Invaders Simulation](https://github.com/TonySoloProjects/space_invaders_simulation)
 
 ## Resources & Acknowledgements
 
