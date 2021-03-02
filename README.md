@@ -21,9 +21,9 @@ This version of the game includes sound effects similar to the original Space In
 	```
 
 ## Usage
-	```sh
-	python alien_invasion.py
-	```
+```sh
+python alien_invasion.py
+```
 
 ## Screenshots
 ![Image](/screenshots/screenshot_01.png)
