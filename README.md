@@ -31,7 +31,7 @@ python alien_invasion.py
 ```
 
 ## Screenshots
-![Image](/images/screenshot_01.png)
+![Image](images/alien_atack_01.gif)
 
 ## License
 
